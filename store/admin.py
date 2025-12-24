@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, ProductImage, Review
+from .models import Category, Product, ProductImage, Review, SubCategory
 
 
 @admin.register(Category)
@@ -36,3 +36,10 @@ class ReviewAdmin(admin.ModelAdmin):
     def approve_reviews(self, request, queryset):
         queryset.update(is_approved=True)
     approve_reviews.short_description = "Approve selected reviews"
+
+@admin.register(SubCategory)
+class SubCategoryAdmin(admin.ModelAdmin):
+    list_display = ['name', 'slug', 'category', 'is_active', 'created_at']
+    list_filter = ['is_active', 'category', 'created_at']
+    search_fields = ['name', 'description']
+    prepopulated_fields = {'slug': ('name',)}

@@ -4,7 +4,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import Account
 from .forms import RegisterForm, LoginForm, ProfileUpdateForm, ContactForm
 from orders.models import Order
 
@@ -93,7 +92,7 @@ def my_account_view(request):
         'form': form,
         'orders': orders,
     }
-    return render(request, 'my_account.html', context)
+    return render(request, 'accounts/my_account.html', context)
 
 
 def contact_view(request):

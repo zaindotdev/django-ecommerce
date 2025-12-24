@@ -70,8 +70,8 @@ class RegisterForm(forms.Form):
 
 
 class LoginForm(forms.Form):
-    email = forms.EmailField(
-        widget=forms.EmailInput(attrs={'placeholder': 'Email', 'class': 'form-control'})
+    username = forms.CharField(
+        widget=forms.TextInput(attrs={'placeholder': 'Username', 'class': 'form-control'})
     )
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={'placeholder': 'Password', 'class': 'form-control'})
@@ -79,18 +79,18 @@ class LoginForm(forms.Form):
     
     def clean(self):
         cleaned_data = super().clean()
-        email = cleaned_data.get('email')
+        username = cleaned_data.get('username')
         password = cleaned_data.get('password')
         
-        if email and password:
+        if username and password:
             try:
-                user = Account.objects.get(email=email)
+                user = Account.objects.get(username=username)
                 user = authenticate(username=user.username, password=password)
                 if user is None:
-                    raise ValidationError('Invalid email or password.')
+                    raise ValidationError('Invalid username or password.')
                 cleaned_data['user'] = user
             except Account.DoesNotExist:
-                raise ValidationError('Invalid email or password.')
+                raise ValidationError('Invalid username or password.')
         
         return cleaned_data
 

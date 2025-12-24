@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q, Avg
-from .models import Product, Category, Review
+from .models import Product, Category, Review, SubCategory, ProductImage
 
 
 def home_view(request):
@@ -54,7 +54,7 @@ def product_list_view(request):
         'products': page_obj,
         'categories': categories,
     }
-    return render(request, 'product.html', context)
+    return render(request, 'store/product.html', context)
 
 
 def product_detail_view(request, slug):
@@ -68,19 +68,84 @@ def product_detail_view(request, slug):
     reviews = product.reviews.filter(is_approved=True)
     avg_rating = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
     
+    # Get product images
+    product_images = product.images.all()
+    
+    # Get main product image URL
+    main_image_url = product.image.image.url if product.image else (product_images.first().image.url if product_images.exists() else None)
+    
+    # Parse product description into sections
+    description_sections = []
+    if product.description:
+        # Normalize line endings (handle \r\n, \r, and \n)
+        description = product.description.replace('\r\n', '\n').replace('\r', '\n')
+        
+        # Split by double newlines to get sections
+        sections = description.strip().split('\n\n')
+        images_list = list(product_images)
+        
+        for i, section in enumerate(sections):
+            if section.strip():
+                lines = section.strip().split('\n', 1)
+                title = lines[0].strip()
+                content = lines[1].strip() if len(lines) > 1 else ''
+                
+                # Get corresponding image or use main product image
+                if i < len(images_list):
+                    image_url = images_list[i].image.url
+                elif main_image_url:
+                    image_url = main_image_url
+                else:
+                    image_url = None
+                
+                description_sections.append({
+                    'title': title,
+                    'content': content,
+                    'image': image_url,
+                    'is_right': i % 2 == 1  # Alternate between left and right
+                })
+    
     context = {
         'product': product,
         'related_products': related_products,
         'reviews': reviews,
         'avg_rating': avg_rating,
+        'description_sections': description_sections,
+        'product_images': product_images,
+        'main_image_url': main_image_url,
     }
-    return render(request, 'product_detail.html', context)
+    return render(request, 'store/product_detail.html', context)
 
 
 def category_view(request, slug):
     """Category page view"""
-    category = get_object_or_404(Category, slug=slug, is_active=True)
-    products = Product.objects.filter(category=category, is_active=True)
+    category = None
+    subcategory = None
+    
+    # Try to find category first
+    try:
+        category = Category.objects.get(slug=slug, is_active=True)
+        products = Product.objects.filter(category=category, is_active=True)
+    except Category.DoesNotExist:
+        # If not a category, try subcategory
+        subcategory = get_object_or_404(SubCategory, slug=slug, is_active=True)
+        products = Product.objects.filter(subcategory=subcategory, is_active=True)
+    
+    # Search/Filter by keywords
+    query = request.GET.get('q')
+    if query:
+        products = products.filter(
+            Q(name__icontains=query) |
+            Q(description__icontains=query)
+        )
+    
+    # Filter by price range
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    if min_price:
+        products = products.filter(price__gte=min_price)
+    if max_price:
+        products = products.filter(price__lte=max_price)
     
     # Sorting
     sort_by = request.GET.get('sort', '-created_at')
@@ -92,12 +157,17 @@ def category_view(request, slug):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
+    # Get all categories for sidebar
+    categories = Category.objects.filter(is_active=True)
+    
     context = {
         'category': category,
+        'subcategory': subcategory,
+        'categories': categories,
         'page_obj': page_obj,
         'products': page_obj,
     }
-    return render(request, 'product.html', context)
+    return render(request, 'store/product.html', context)
 
 
 def search_view(request):

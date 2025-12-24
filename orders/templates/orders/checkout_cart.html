@@ -1,0 +1,186 @@
+{% extends "index.html" %}
+{% load static %}
+{% block title %}Checkout Cart{% endblock %}
+
+{% block content %}
+<div class="section-container" id="checkout-info">
+            <!-- BEGIN container -->
+            <div class="container">
+                <!-- BEGIN checkout -->
+                <div class="checkout">
+                        <!-- BEGIN checkout-header -->
+                        <div class="checkout-header">
+                            <!-- BEGIN row -->
+                            <div class="row">
+                                <!-- BEGIN col-3 -->
+                                <div class="col-md-3 col-sm-3">
+                                    <div class="step active">
+                                        <a href="#">
+                                            <div class="number">1</div>
+                                            <div class="info">
+                                                <div class="title">Delivery Options</div>
+                                                <div class="desc">Lorem ipsum dolor sit amet.</div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                                <!-- END col-3 -->
+                                <!-- BEGIN col-3 -->
+                                <div class="col-md-3 col-sm-3">
+                                    <div class="step">
+                                        <a href="{% url "orders:checkout_info" %}">
+                                            <div class="number">2</div>
+                                            <div class="info">
+                                                <div class="title">Shipping Address</div>
+                                                <div class="desc">Vivamus eleifend euismod.</div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                                <!-- END col-3 -->
+                                <!-- BEGIN col-3 -->
+                                <div class="col-md-3 col-sm-3">
+                                    <div class="step">
+                                        <a href="{% url "orders:checkout_payment" %}">
+                                            <div class="number">3</div>
+                                            <div class="info">
+                                                <div class="title">Payment</div>
+                                                <div class="desc">Aenean ut pretium ipsum. </div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                                <!-- END col-3 -->
+                                <!-- BEGIN col-3 -->
+                                <div class="col-md-3 col-sm-3">
+                                    <div class="step">
+                                        <a href="{% url "orders:checkout_complete" %}">
+                                            <div class="number">4</div>
+                                            <div class="info">
+                                                <div class="title">Complete Payment</div>
+                                                <div class="desc">Curabitur interdum libero.</div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                                <!-- END col-3 -->
+                            </div>
+                            <!-- END row -->
+                        </div>
+                        <!-- END checkout-header -->
+                        <!-- BEGIN checkout-body -->
+                        <div class="checkout-body">
+                            <div class="table-responsive">
+                                <table class="table table-cart">
+                                    <thead>
+                                        <tr>
+                                            <th>Product Name</th>
+                                            <th class="text-center">Price</th>
+                                            <th class="text-center">Quantity</th>
+                                            <th class="text-center">Total</th>
+                                            <th class="text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if cart_items %}
+                                            {% for item in cart_items %}
+                                            <tr>
+                                                <td class="cart-product">
+                                                    <div class="product-img">
+                                                        {% if item.product.image %}
+                                                            <img src="{{ item.product.image.image.url }}" alt="{{ item.product.name }}" />
+                                                        {% elif item.product.images.all.0 %}
+                                                            <img src="{{ item.product.images.all.0.image.url }}" alt="{{ item.product.name }}" />
+                                                        {% else %}
+                                                            <img src="{% static 'assets/img/iphone-6s-plus.png' %}" alt="{{ item.product.name }}" />
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="product-info">
+                                                        <div class="title">
+                                                            <a href="{% url 'store:product_detail' item.product.slug %}">{{ item.product.name }}</a>
+                                                        </div>
+                                                        <div class="desc">{{ item.product.category.name }}</div>
+                                                    </div>
+                                                </td>
+                                                <td class="cart-price text-center">${{ item.product.price }}</td>
+                                                <td class="cart-qty text-center">
+                                                    <div class="cart-qty-input">
+                                                        <form method="POST" action="{% url 'orders:update_cart_item' item.id %}" style="display: inline;">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="action" value="decrease" />
+                                                            <button type="submit" class="qty-control left {% if item.quantity <= 1 %}disabled{% endif %}" {% if item.quantity <= 1 %}disabled{% endif %}>
+                                                                <i class="fa fa-minus"></i>
+                                                            </button>
+                                                        </form>
+                                                        <input type="text" value="{{ item.quantity }}" class="form-control" readonly />
+                                                        <form method="POST" action="{% url 'orders:update_cart_item' item.id %}" style="display: inline;">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="action" value="increase" />
+                                                            <button type="submit" class="qty-control right {% if item.quantity >= item.product.stock %}disabled{% endif %}" {% if item.quantity >= item.product.stock %}disabled{% endif %}>
+                                                                <i class="fa fa-plus"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                    <div class="qty-desc">Max: {{ item.product.stock }}</div>
+                                                </td>
+                                                <td class="cart-total text-center">
+                                                    ${% widthratio item.quantity 1 item.product.price %}
+                                                </td>
+                                                <td class="cart-action text-center">
+                                                    <form method="POST" action="{% url 'orders:update_cart_item' item.id %}" style="display: inline;">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="action" value="remove" />
+                                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Remove this item from cart?')">
+                                                            <i class="fa fa-trash"></i> Remove
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            <tr>
+                                                <td class="cart-summary" colspan="5">
+                                                    <div class="summary-container">
+                                                        <div class="summary-row">
+                                                            <div class="field">Cart Subtotal</div>
+                                                            <div class="value">${{ cart.subtotal }}</div>
+                                                        </div>
+                                                        <div class="summary-row text-success">
+                                                            <div class="field">Shipping</div>
+                                                            <div class="value">Calculated at checkout</div>
+                                                        </div>
+                                                        <div class="summary-row total">
+                                                            <div class="field">Total</div>
+                                                            <div class="value">${{ cart.subtotal }}</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="5" class="text-center p-30">
+                                                    <i class="fa fa-shopping-cart fa-3x text-muted m-b-15"></i>
+                                                    <h4>Your cart is empty</h4>
+                                                    <p class="text-muted">Add some items to get started!</p>
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- END checkout-body -->
+                        <!-- BEGIN checkout-footer -->
+                        <div class="checkout-footer">
+                            <a href="{% url "store:store" %}" class="btn btn-white btn-lg pull-left">Continue Shopping</a>
+                            {% if cart_items %}
+                            <a href="{% url "orders:checkout_info" %}" class="btn btn-inverse btn-lg p-l-30 p-r-30 m-l-10">Proceed to Checkout</a>
+                            {% endif %}
+                        </div>
+                        <!-- END checkout-footer -->
+                </div>
+                <!-- END checkout -->
+            </div>
+            <!-- END container -->
+        </div>
+        <!-- END #checkout-cart -->
+{% endblock %}

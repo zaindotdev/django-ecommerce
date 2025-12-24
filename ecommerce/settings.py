@@ -74,6 +74,8 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.media',
                 'ecommerce.context_processors.cart_context',  # Custom cart context
+                'ecommerce.context_processors.product_context',  # Product data context
+                'ecommerce.context_processors.get_categories',  # Categories and subcategories
             ],
         },
     },

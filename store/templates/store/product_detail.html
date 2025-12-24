@@ -1,0 +1,412 @@
+{% extends "index.html" %} {% load static %} {% block title %} Product Details -
+Color Admin | e-commerce frontend theme {% endblock %} {% block content %}
+<!-- BEGIN #product -->
+<div id="product" class="section-container p-t-20">
+  <!-- BEGIN container -->
+  <div class="container">
+    <!-- BEGIN breadcrumb -->
+    <ul class="breadcrumb m-b-10 f-s-12">
+      <li><a href="{% url 'store:home' %}">Home</a></li>
+      <li><a href="{% url 'store:store' %}">Products</a></li>
+      <li>
+        <a href="{% url 'store:category' product.category.slug %}"
+          >{{ product.category.name }}</a
+        >
+      </li>
+      <li class="active">{{ product.name }}</li>
+    </ul>
+    <!-- END breadcrumb -->
+
+    <!-- BEGIN product -->
+    <div class="product">
+      <!-- BEGIN product-detail -->
+      <div class="product-detail">
+        <!-- BEGIN product-image -->
+        <div class="product-image">
+          <!-- BEGIN product-thumbnail -->
+          <div class="product-thumbnail">
+            <ul class="product-thumbnail-list">
+              {% for image in product_images %}
+              <li {% if forloop.first %}class="active" {% endif %}>
+                <a
+                  href="#"
+                  data-click="show-main-image"
+                  data-url="{{ image.image.url }}"
+                  ><img src="{{ image.image.url }}" alt="{{ product.name }}"
+                /></a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+          <!-- END product-thumbnail -->
+          <!-- BEGIN product-main-image -->
+          <div class="product-main-image" data-id="main-image">
+            {% if main_image_url %}
+            <img
+              src="{{ main_image_url }}"
+              alt="{{ product.name }}"
+            />
+            {% endif %}
+          </div>
+          <!-- END product-main-image -->
+        </div>
+        <!-- END product-image -->
+        <!-- BEGIN product-info -->
+        <div class="product-info">
+          <!-- BEGIN product-info-header -->
+          <div class="product-info-header">
+            <h1 class="product-title">
+              {% if product.compare_price and product.compare_price > product.price %}
+              <span class="label label-success">SALE</span>
+              {% endif %}
+              {{ product.name }}
+            </h1>
+            <ul class="product-category">
+              {% if product.subcategory %}
+              <li>
+                <a href="{% url 'store:category' product.subcategory.slug %}"
+                  >{{ product.subcategory.name }}</a
+                >
+              </li>
+              <li>/</li>
+              {% endif %}
+              <li>
+                <a href="{% url 'store:category' product.category.slug %}"
+                  >{{ product.category.name }}</a
+                >
+              </li>
+            </ul>
+          </div>
+          <!-- END product-info-header -->
+          <!-- BEGIN product-warranty -->
+          <div class="product-warranty">
+            <div class="pull-right">
+              Availability: {% if product.stock > 0 %}In stock ({{ product.stock}}){% else %}Out of stock{% endif %}
+            </div>
+            <div>
+              {% if product.warranty %}<b>{{ product.warranty }}</b>{% else %}<b
+                >1 Year</b
+              >
+              Manufacturer Warranty{% endif %}
+            </div>
+          </div>
+          <!-- END product-warranty -->
+          <!-- BEGIN product-info-list -->
+          <ul class="product-info-list">
+            {% if product.specifications %} {{ product.specifications|linebreaks}} {% endif %}
+          </ul>
+          <!-- END product-info-list -->
+          <!-- BEGIN product-social -->
+          <div class="product-social">
+            <ul>
+              <li>
+                <a
+                  href="javascript:;"
+                  class="facebook"
+                  data-toggle="tooltip"
+                  data-trigger="hover"
+                  data-title="Facebook"
+                  data-placement="top"
+                  ><i class="fa fa-facebook"></i
+                ></a>
+              </li>
+              <li>
+                <a
+                  href="javascript:;"
+                  class="twitter"
+                  data-toggle="tooltip"
+                  data-trigger="hover"
+                  data-title="Twitter"
+                  data-placement="top"
+                  ><i class="fa fa-twitter"></i
+                ></a>
+              </li>
+              <li>
+                <a
+                  href="javascript:;"
+                  class="google-plus"
+                  data-toggle="tooltip"
+                  data-trigger="hover"
+                  data-title="Google Plus"
+                  data-placement="top"
+                  ><i class="fa fa-google-plus"></i
+                ></a>
+              </li>
+              <li>
+                <a
+                  href="javascript:;"
+                  class="whatsapp"
+                  data-toggle="tooltip"
+                  data-trigger="hover"
+                  data-title="Whatsapp"
+                  data-placement="top"
+                  ><i class="fa fa-whatsapp"></i
+                ></a>
+              </li>
+              <li>
+                <a
+                  href="javascript:;"
+                  class="tumblr"
+                  data-toggle="tooltip"
+                  data-trigger="hover"
+                  data-title="Tumblr"
+                  data-placement="top"
+                  ><i class="fa fa-tumblr"></i
+                ></a>
+              </li>
+            </ul>
+          </div>
+          <!-- END product-social -->
+          <!-- BEGIN product-purchase-container -->
+          <div class="product-purchase-container">
+            {% if product.compare_price and product.compare_price > product.price %}
+            <div class="product-discount">
+              <span class="discount">${{ product.compare_price }}</span>
+            </div>
+            {% endif %}
+            <div class="product-price">
+              <div class="price">${{ product.price }}</div>
+            </div>
+            <form method="POST" action="{% url 'orders:add_to_cart' product.id %}">
+              {% csrf_token %}
+              <div class="product-quantity">
+                <label class="control-label m-r-10">Quantity:</label>
+                <div class="input-group" style="max-width: 150px; display: inline-flex;">
+                  <span class="input-group-btn">
+                    <button type="button" class="btn btn-default btn-quantity" data-type="minus">
+                      <i class="fa fa-minus"></i>
+                    </button>
+                  </span>
+                  <input type="number" name="quantity" class="form-control text-center" value="1" min="1" max="{{ product.stock }}" />
+                  <span class="input-group-btn">
+                    <button type="button" class="btn btn-default btn-quantity" data-type="plus">
+                      <i class="fa fa-plus"></i>
+                    </button>
+                  </span>
+                </div>
+              </div>
+              <button class="btn btn-inverse btn-lg m-t-10" type="submit" {% if product.stock <= 0 %}disabled{% endif %}>
+                {% if product.stock > 0 %}
+                  <i class="fa fa-shopping-cart"></i> ADD TO CART
+                {% else %}
+                  OUT OF STOCK
+                {% endif %}
+              </button>
+            </form>
+          </div>
+          <!-- END product-purchase-container -->
+        </div>
+        <!-- END product-info -->
+      </div>
+      <!-- END product-detail -->
+      <!-- BEGIN product-tab -->
+      <div class="product-tab">
+        <!-- BEGIN #product-tab -->
+        <ul id="product-tab" class="nav nav-tabs">
+          <li class="active">
+            <a href="#product-desc" data-toggle="tab">Product Description</a>
+          </li>
+          <li class="">
+            <a href="#product-reviews" data-toggle="tab"
+              >Rating & Reviews ({{ reviews.count }})</a
+            >
+          </li>
+        </ul>
+        <!-- END #product-tab -->
+        <!-- BEGIN #product-tab-content -->
+        <div id="product-tab-content" class="tab-content">
+          <!-- BEGIN #product-desc -->
+          <div class="tab-pane fade active in" id="product-desc">
+            {% for section in description_sections %}
+            <!-- BEGIN product-desc -->
+            <div class="product-desc {% if section.is_right %}right{% endif %}">
+              <div class="image">
+                <img src="{{ section.image }}" alt="{{ section.title }}" />
+              </div>
+              <div class="desc">
+                <h4>{{ section.title }}</h4>
+                <p>{{ section.content }}</p>
+              </div>
+            </div>
+            <!-- END product-desc -->
+            {% endfor %}
+          </div>
+          <!-- END #product-info -->
+          <!-- BEGIN #product-reviews -->
+          <div class="tab-pane fade" id="product-reviews">
+            <!-- BEGIN row -->
+            <div class="row row-space-30">
+              <!-- BEGIN col-7 -->
+              <div class="col-md-7">
+                {% if reviews %}
+                {% for review in reviews %}
+                <!-- BEGIN review -->
+                <div class="review">
+                  <div class="review-info">
+                    <div class="review-icon">
+                      {% if review.user.profile.avatar %}
+                      <img src="{{ review.user.profile.avatar.url }}" alt="{{ review.user.get_full_name }}" />
+                      {% else %}
+                      <img src="{% static 'assets/img/user-1.jpg' %}" alt="{{ review.user.get_full_name }}" />
+                      {% endif %}
+                    </div>
+                    <div class="review-rate">
+                      <ul class="review-star">
+                        {% for i in "12345" %}
+                          {% if forloop.counter <= review.rating %}
+                          <li class="active"><i class="fa fa-star"></i></li>
+                          {% else %}
+                          <li><i class="fa fa-star-o"></i></li>
+                          {% endif %}
+                        {% endfor %}
+                      </ul>
+                      ({{ review.rating }}/5)
+                    </div>
+                    <div class="review-name">{{ review.user.get_full_name|default:review.user.username }}</div>
+                    <div class="review-date">{{ review.created_at|date:"d/m/Y g:ia" }}</div>
+                  </div>
+                  <div class="review-title">{{ review.title }}</div>
+                  <div class="review-message">{{ review.comment }}</div>
+                </div>
+                <!-- END review -->
+                {% endfor %}
+                {% else %}
+                <p class="text-muted">No reviews yet. Be the first to review this product!</p>
+                {% endif %}
+              </div>
+              <!-- END col-7 -->
+              <!-- BEGIN col-5 -->
+              <div class="col-md-5">
+                <!-- BEGIN review-form -->
+                <div class="review-form">
+                  <form action="product_detail.html" name="review_form" method="POST">
+                    <h2>Write a review</h2>
+                    <div class="form-group">
+                      <label for="name">Name <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control" id="name" />
+                    </div>
+                    <div class="form-group">
+                      <label for="email">Title <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control" id="email" />
+                    </div>
+                    <div class="form-group">
+                      <label for="review">Review <span class="text-danger">*</span></label>
+                      <textarea class="form-control" rows="8" id="review"></textarea>
+                    </div>
+                    <div class="form-group">
+                      <label for="email">Rating  <span class="text-danger">*</span></label>
+                      <div class="rating rating-selection" data-rating="true" data-target="rating">
+                        <i class="fa fa-star-o" data-value="2"></i>
+                        <i class="fa fa-star-o" data-value="4"></i>
+                        <i class="fa fa-star-o" data-value="6"></i>
+                        <i class="fa fa-star-o" data-value="8"></i>
+                        <i class="fa fa-star-o" data-value="10"></i>
+                        <span class="rating-comment">
+                          <span class="rating-comment-tooltip">Click to rate</span>
+                        </span>
+                      </div>
+                      <select name="rating" class="hide">
+                        <option value="2">2</option>
+                        <option value="4">4</option>
+                        <option value="6">6</option>
+                        <option value="8">8</option>
+                        <option value="10">10</option>
+                      </select>
+                    </div>            
+                    <button type="submit" class="btn btn-inverse btn-lg">Submit Review</button>
+                  </form>
+                </div>
+                <!-- END review-form --> 
+              </div>
+              <!-- END col-5 -->
+            </div>
+            <!-- END row -->
+          </div>
+          <!-- END #product-reviews -->
+        </div>
+        <!-- END #product-tab-content -->
+      </div>
+      <!-- END product-tab -->
+    </div>
+    <!-- END product -->
+
+    <!-- BEGIN similar-product -->
+    {% if related_products %}
+    <h4 class="m-b-15 m-t-30">You Might Also Like</h4>
+    <div class="row row-space-10">
+      {% for related in related_products %}
+      <div class="col-md-2 col-sm-4">
+        <!-- BEGIN item -->
+        <div class="item item-thumbnail">
+          <a
+            href="{% url 'store:product_detail' related.slug %}"
+            class="item-image"
+          >
+            {% if related.image %}
+              <img src="{{ related.image.image.url }}" alt="{{ related.name }}" />
+            {% elif related.images.all.0 %}
+              <img src="{{ related.images.all.0.image.url }}" alt="{{ related.name }}" />
+            {% endif %}
+            {% if related.compare_price and related.compare_price > related.price %}
+            <div class="discount">OFF</div>
+            {% endif %}
+          </a>
+          <div class="item-info">
+            <h4 class="item-title">
+              <a href="{% url 'store:product_detail' related.slug %}"
+                >{{ related.name }}</a
+              >
+            </h4>
+            <p class="item-desc">
+              {{ related.description|truncatewords:10|striptags }}
+            </p>
+            <div class="item-price">${{ related.price }}</div>
+            {% if related.compare_price and related.compare_price > related.price %}
+            <div class="item-discount-price">${{ related.compare_price }}</div>
+            {% endif %}
+          </div>
+        </div>
+        <!-- END item -->
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <!-- END similar-product -->
+  </div>
+  <!-- END container -->
+</div>
+<!-- END #product -->
+
+<script>
+  // Quantity increment/decrement controls
+  $(document).ready(function() {
+    $('.btn-quantity').click(function() {
+      var $input = $(this).closest('.input-group').find('input[name="quantity"]');
+      var currentVal = parseInt($input.val()) || 1;
+      var maxVal = parseInt($input.attr('max')) || 999;
+      var minVal = parseInt($input.attr('min')) || 1;
+      
+      if ($(this).data('type') === 'plus') {
+        if (currentVal < maxVal) {
+          $input.val(currentVal + 1);
+        }
+      } else if ($(this).data('type') === 'minus') {
+        if (currentVal > minVal) {
+          $input.val(currentVal - 1);
+        }
+      }
+    });
+    
+    // Ensure input stays within bounds
+    $('input[name="quantity"]').on('change', function() {
+      var val = parseInt($(this).val()) || 1;
+      var max = parseInt($(this).attr('max')) || 999;
+      var min = parseInt($(this).attr('min')) || 1;
+      
+      if (val > max) $(this).val(max);
+      if (val < min) $(this).val(min);
+    });
+  });
+</script>
+
+{% endblock %}

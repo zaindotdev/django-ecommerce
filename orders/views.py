@@ -38,7 +38,7 @@ def cart_view(request):
         'cart': cart,
         'cart_items': cart_items,
     }
-    return render(request, 'checkout_cart.html', context)
+    return render(request, 'orders/checkout_cart.html', context)
 
 
 def add_to_cart(request, product_id):
@@ -120,7 +120,7 @@ def checkout_info_view(request):
         'form': form,
         'cart': cart,
     }
-    return render(request, 'checkout_info.html', context)
+    return render(request, 'orders/checkout_info.html', context)
 
 
 def checkout_payment_view(request):
@@ -162,7 +162,7 @@ def checkout_payment_view(request):
             'client_secret': intent.client_secret,
             'checkout_data': checkout_data,
         }
-        return render(request, 'checkout_payment.html', context)
+        return render(request, 'orders/checkout_payment.html', context)
     
     except stripe.error.StripeError as e:
         messages.error(request, 'Payment processing error. Please try again.')
@@ -272,7 +272,7 @@ def checkout_complete_view(request):
     context = {
         'order': order,
     }
-    return render(request, 'checkout_complete.html', context)
+    return render(request, 'orders/checkout_complete.html', context)
 
 
 @login_required
