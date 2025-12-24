@@ -1,6 +1,6 @@
 {% extends "index.html" %}
 {% load static %}
-{% block title %} Checkout Complete - Color Admin | e-commerce frontend theme 
+{% block title %} Order Complete - {% if order %}{{ order.order_number }}{% else %}Checkout{% endif %} 
 {% endblock %} 
 {% block content %}
 <!-- BEGIN #checkout-cart -->
@@ -9,136 +9,180 @@
   <div class="container">
     <!-- BEGIN checkout -->
     <div class="checkout">
-      <form action="{% url "orders:checkout_info" %}" method="POST" name="form_checkout">
-        <!-- BEGIN checkout-header -->
-        {% csrf_token %}
-        <div class="checkout-header">
-          <!-- BEGIN row -->
-          <div class="row">
-            <!-- BEGIN col-3 -->
-            <div class="col-md-3 col-sm-3">
-              <div class="step">
-                <a href="checkout_cart.html">
-                  <div class="number">1</div>
-                  <div class="info">
-                    <div class="title">Delivery Options</div>
-                    <div class="desc">Lorem ipsum dolor sit amet.</div>
-                  </div>
-                </a>
-              </div>
+      <!-- BEGIN checkout-header -->
+      <div class="checkout-header">
+        <!-- BEGIN row -->
+        <div class="row">
+          <!-- BEGIN col-3 -->
+          <div class="col-md-3 col-sm-3">
+            <div class="step completed">
+              <a href="{% url 'orders:cart' %}">
+                <div class="number"><i class="fa fa-check"></i></div>
+                <div class="info">
+                  <div class="title">Shopping Cart</div>
+                  <div class="desc">Review your items</div>
+                </div>
+              </a>
             </div>
-            <!-- END col-3 -->
-            <!-- BEGIN col-3 -->
-            <div class="col-md-3 col-sm-3">
-              <div class="step">
-                <a href="checkout_info.html">
-                  <div class="number">2</div>
-                  <div class="info">
-                    <div class="title">Shipping Address</div>
-                    <div class="desc">Vivamus eleifend euismod.</div>
-                  </div>
-                </a>
-              </div>
-            </div>
-            <!-- END col-3 -->
-            <!-- BEGIN col-3 -->
-            <div class="col-md-3 col-sm-3">
-              <div class="step">
-                <a href="checkout_payment.html">
-                  <div class="number">3</div>
-                  <div class="info">
-                    <div class="title">Payment</div>
-                    <div class="desc">Aenean ut pretium ipsum.</div>
-                  </div>
-                </a>
-              </div>
-            </div>
-            <!-- END col-3 -->
-            <!-- BEGIN col-3 -->
-            <div class="col-md-3 col-sm-3">
-              <div class="step active">
-                <a href="#">
-                  <div class="number">4</div>
-                  <div class="info">
-                    <div class="title">Complete Payment</div>
-                    <div class="desc">Curabitur interdum libero.</div>
-                  </div>
-                </a>
-              </div>
-            </div>
-            <!-- END col-3 -->
           </div>
-          <!-- END row -->
+          <!-- END col-3 -->
+          <!-- BEGIN col-3 -->
+          <div class="col-md-3 col-sm-3">
+            <div class="step completed">
+              <a href="{% url 'orders:checkout_info' %}">
+                <div class="number"><i class="fa fa-check"></i></div>
+                <div class="info">
+                  <div class="title">Shipping Address</div>
+                  <div class="desc">Enter delivery details</div>
+                </div>
+              </a>
+            </div>
+          </div>
+          <!-- END col-3 -->
+          <!-- BEGIN col-3 -->
+          <div class="col-md-3 col-sm-3">
+            <div class="step completed">
+              <a href="{% url 'orders:checkout_payment' %}">
+                <div class="number"><i class="fa fa-check"></i></div>
+                <div class="info">
+                  <div class="title">Payment</div>
+                  <div class="desc">Secure payment processing</div>
+                </div>
+              </a>
+            </div>
+          </div>
+          <!-- END col-3 -->
+          <!-- BEGIN col-3 -->
+          <div class="col-md-3 col-sm-3">
+            <div class="step active">
+              <a href="#">
+                <div class="number">4</div>
+                <div class="info">
+                  <div class="title">Order Complete</div>
+                  <div class="desc">Confirmation</div>
+                </div>
+              </a>
+            </div>
+          </div>
+          <!-- END col-3 -->
         </div>
-        <!-- END checkout-header -->
-        <!-- BEGIN checkout-body -->
-        <div class="checkout-body">
-          <!-- BEGIN checkout-message -->
-          <div class="checkout-message">
+        <!-- END row -->
+      </div>
+      <!-- END checkout-header -->
+      <!-- BEGIN checkout-body -->
+      <div class="checkout-body">
+        <!-- BEGIN checkout-message -->
+        <div class="checkout-message">
+          {% if order %}
             <h1>
-              Thank you!
-              <small
-                >Your Payment has been successfully processed with the following
-                details.</small
-              >
+              Thank you, {{ order.full_name }}!
+              <small>Your order has been successfully processed with the following details.</small>
             </h1>
             <div class="table-responsive2">
               <table class="table table-payment-summary">
                 <tbody>
                   <tr>
-                    <td class="field">Transaction Status</td>
-                    <td class="value">Success</td>
-                  </tr>
-                  <tr>
-                    <td class="field">Transaction Reference No.</td>
-                    <td class="value">REF000001</td>
-                  </tr>
-                  <tr>
-                    <td class="field">Bank Authorised Code</td>
-                    <td class="value">AUTH000001</td>
-                  </tr>
-                  <tr>
-                    <td class="field">Transaction Date and Time</td>
-                    <td class="value">05 APR 2016 07:30PM</td>
-                  </tr>
-                  <tr>
-                    <td class="field">Orders</td>
-                    <td class="value product-summary">
-                      <div class="product-summary-img">
-                        <img src="{% static "assets/img/iphone-6s-plus.png" %}" alt="" />
-                      </div>
-                      <div class="product-summary-info">
-                        <div class="title">iPhone 6s Plus 16GB (Silver)</div>
-                        <div class="desc">Delivers Tue 26/04/2016 - Free</div>
-                      </div>
+                    <td class="field">Order Status</td>
+                    <td class="value">
+                      <span class="badge badge-success">{{ order.get_status_display }}</span>
                     </td>
                   </tr>
                   <tr>
-                    <td class="field">Payment Amount (RM)</td>
-                    <td class="value">$999.00</td>
+                    <td class="field">Order Number</td>
+                    <td class="value"><strong>{{ order.order_number }}</strong></td>
+                  </tr>
+                  <tr>
+                    <td class="field">Payment Status</td>
+                    <td class="value">
+                      <span class="badge {% if order.payment_status == 'completed' %}badge-success{% else %}badge-warning{% endif %}">
+                        {{ order.get_payment_status_display }}
+                      </span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="field">Order Date</td>
+                    <td class="value">{{ order.created_at|date:"d M Y h:i A" }}</td>
+                  </tr>
+                  <tr>
+                    <td class="field">Shipping Address</td>
+                    <td class="value">
+                      {{ order.address }}<br>
+                      {{ order.city }}, {{ order.state }} {{ order.postal_code }}<br>
+                      {{ order.country }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="field">Order Items</td>
+                    <td class="value">
+                      {% for item in order.items.all %}
+                        <div class="product-summary" style="{% if not forloop.last %}margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee;{% endif %}">
+                          <div class="product-summary-img">
+                            {% if item.product.image %}
+                              <img src="{{ item.product.images.all.0.image.url }}" alt="{{ item.product_name }}" style="max-width: 60px;" />
+                            {% else %}
+                              <img src="{% static 'assets/img/product-placeholder.png' %}" alt="{{ item.product_name }}" style="max-width: 60px;" />
+                            {% endif %}
+                          </div>
+                          <div class="product-summary-info">
+                            <div class="title">{{ item.product_name }}</div>
+                            <div class="desc">Quantity: {{ item.quantity }} × ${{ item.product_price }}</div>
+                          </div>
+                        </div>
+                      {% endfor %}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="field">Subtotal</td>
+                    <td class="value">${{ order.subtotal }}</td>
+                  </tr>
+                  <tr>
+                    <td class="field">Shipping</td>
+                    <td class="value">${{ order.shipping_cost }}</td>
+                  </tr>
+                  <tr>
+                    <td class="field">Tax</td>
+                    <td class="value">${{ order.tax }}</td>
+                  </tr>
+                  <tr class="total">
+                    <td class="field">Total Amount</td>
+                    <td class="value"><strong>${{ order.total }}</strong></td>
                   </tr>
                 </tbody>
               </table>
             </div>
             <p class="text-muted text-center m-b-0">
-              Should you require any assistance, you can get in touch with
-              Support Team at (123) 456-7890
+              A confirmation email has been sent to <strong>{{ order.email }}</strong>.<br>
+              Should you require any assistance, please contact our support team.
             </p>
-          </div>
-          <!-- END checkout-message -->
+          {% else %}
+            <h1>
+              Order Not Found
+              <small>We couldn't find the order you're looking for.</small>
+            </h1>
+            <p class="text-center">
+              <a href="{% url 'store:home' %}" class="btn btn-primary btn-lg m-t-20">Continue Shopping</a>
+            </p>
+          {% endif %}
         </div>
-        <!-- END checkout-body -->
-        <!-- BEGIN checkout-footer -->
-        <div class="checkout-footer text-center">
-          <button
-            type="submit"
-            class="btn btn-white btn-lg p-l-30 p-r-30 m-l-10"
-          >
-            Manage Orders
-          </button>
-        </div>
-        <!-- END checkout-footer -->
-      </form>
+        <!-- END checkout-message -->
+      </div>
+      <!-- END checkout-body -->
+      <!-- BEGIN checkout-footer -->
+      <div class="checkout-footer text-center">
+        {% if order %}
+          <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-primary btn-lg p-l-30 p-r-30">
+            View Order Details
+          </a>
+          <a href="{% url 'store:home' %}" class="btn btn-white btn-lg p-l-30 p-r-30 m-l-10">
+            Continue Shopping
+          </a>
+        {% else %}
+          <a href="{% url 'store:home' %}" class="btn btn-primary btn-lg p-l-30 p-r-30">
+            Go to Home
+          </a>
+        {% endif %}
+      </div>
+      <!-- END checkout-footer -->
     </div>
     <!-- END checkout -->
   </div>

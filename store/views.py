@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q, Avg
-from .models import Product, Category, Review, SubCategory, ProductImage
+from .models import Product, Category, Review, SubCategory
 
 
 def home_view(request):
@@ -170,32 +170,6 @@ def category_view(request, slug):
     return render(request, 'store/product.html', context)
 
 
-def search_view(request):
-    """Search products"""
-    query = request.GET.get('q', '')
-    products = Product.objects.none()
-    
-    if query:
-        products = Product.objects.filter(
-            Q(name__icontains=query) |
-            Q(description__icontains=query) |
-            Q(category__name__icontains=query),
-            is_active=True
-        ).distinct()
-    
-    # Pagination
-    paginator = Paginator(products, 12)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    
-    context = {
-        'query': query,
-        'page_obj': page_obj,
-        'products': page_obj,
-    }
-    return render(request, 'search_results.html', context)
-
-
 @login_required
 def add_review(request, product_id):
     """Add product review"""
@@ -222,3 +196,36 @@ def add_review(request, product_id):
             messages.error(request, 'Please fill in all fields.')
     
     return redirect('store:product_detail', slug=product.slug)
+
+
+def search_view(request):
+    """Search products"""
+    query = request.GET.get('q', '').strip()
+    products = Product.objects.none()
+    print(f"Search query: {query}")
+    
+    if query:
+        # Search in product name, description, and category
+        products = Product.objects.filter(
+            Q(name__icontains=query) |
+            Q(description__icontains=query) |
+            Q(specifications__icontains=query) |
+            Q(category__name__icontains=query) |
+            Q(subcategory__name__icontains=query),
+            is_active=True
+        ).distinct()
+        
+        print(f"Found {products.count()} products matching the query.")
+    
+    # Pagination
+    paginator = Paginator(products, 12)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    print(f"Displaying page {page_obj.number} of {paginator.num_pages}.")
+    
+    context = {
+        'page_obj': page_obj,
+        'query': query,
+    }
+    return render(request, 'store/search_results.html', context)

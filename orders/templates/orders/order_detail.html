@@ -1,0 +1,42 @@
+{% extends "index.html" %}
+{% load static %}
+{% block title %} Order Detail - {% if order %}{{ order.order_number }}{% else %}Order{% endif %} 
+{% endblock %} 
+{% block content %}
+<!-- BEGIN #order-detail -->
+<div class="section-container" id="order-detail">
+  <!-- BEGIN container -->
+  <div class="container">
+    <!-- BEGIN order-detail -->
+    <div class="order-detail">
+      <h2 class="order-detail-title">Order Detail - {{ order.order_number }}</h2>
+      <div class="order-detail-info">
+        <p><strong>Order Date:</strong> {{ order.created_at|date:"F j, Y, g:i a" }}</p>
+        <p><strong>Status:</strong> {{ order.get_status_display }}</p>
+        <p><strong>Total Amount:</strong> ${{ order.total }}</p>
+      </div>
+      <h3 class="order-detail-subtitle">Items:</h3>
+      <div class="order-detail-items">
+        {% for item in order.items.all %}
+        <div class="order-detail-item">
+          <div class="item-name">{{ item.product_name }}</div>
+          <div class="item-quantity">Quantity: {{ item.quantity }}</div>
+          <div class="item-price">Price: ${{ item.product_price }}</div>
+        </div>
+        {% empty %}
+        <p>No items found in this order.</p>
+        {% endfor %}
+      </div>
+      <h3 class="order-detail-subtitle">Shipping Address:</h3>
+      <div class="order-detail-shipping">
+        <p>{{ order.address }}</p>
+        <p>{{ order.city }}, {{ order.state }} {{ order.postal_code }}</p>
+        <p>{{ order.country }}</p>
+      </div>
+    </div>
+    <!-- END order-detail -->
+  </div>
+  <!-- END container -->
+</div>
+<!-- END #order-detail -->
+{% endblock %}

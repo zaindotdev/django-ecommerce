@@ -1,7 +1,6 @@
 {% extends "index.html" %}
 {% load static %}
-{% block title %} Checkout Payment - Color Admin | e-commerce frontend theme 
-{% endblock %} 
+{% block title %} Checkout Payment - Secure Payment {% endblock %} 
 {% block content %}
         <!-- BEGIN #checkout-payment -->
         <div class="section-container" id="checkout-payment">
@@ -9,19 +8,20 @@
             <div class="container">
                 <!-- BEGIN checkout -->
                 <div class="checkout">
-                    <form action="checkout_complete.html" method="POST" name="form_payment" class="form-horizontal">
+                    <form action="{% url "orders:checkout_payment" %}" method="POST" name="form_payment" class="form-horizontal">
+                        {% csrf_token %}
                         <!-- BEGIN checkout-header -->
                         <div class="checkout-header">
                             <!-- BEGIN row -->
                             <div class="row">
                                 <!-- BEGIN col-3 -->
                                 <div class="col-md-3 col-sm-3">
-                                    <div class="step">
-                                        <a href="checkout_cart.html">
-                                            <div class="number">1</div>
+                                    <div class="step completed">
+                                        <a href="{% url 'orders:cart' %}">
+                                            <div class="number"><i class="fa fa-check"></i></div>
                                             <div class="info">
-                                                <div class="title">Delivery Options</div>
-                                                <div class="desc">Lorem ipsum dolor sit amet.</div>
+                                                <div class="title">Shopping Cart</div>
+                                                <div class="desc">Review your items</div>
                                             </div>
                                         </a>
                                     </div>
@@ -29,12 +29,12 @@
                                 <!-- END col-3 -->
                                 <!-- BEGIN col-3 -->
                                 <div class="col-md-3 col-sm-3">
-                                    <div class="step">
+                                    <div class="step completed">
                                         <a href="{% url "orders:checkout_info" %}">
-                                            <div class="number">2</div>
+                                            <div class="number"><i class="fa fa-check"></i></div>
                                             <div class="info">
                                                 <div class="title">Shipping Address</div>
-                                                <div class="desc">Vivamus eleifend euismod.</div>
+                                                <div class="desc">Enter delivery details</div>
                                             </div>
                                         </a>
                                     </div>
@@ -43,11 +43,11 @@
                                 <!-- BEGIN col-3 -->
                                 <div class="col-md-3 col-sm-3">
                                     <div class="step active">
-                                        <a href="{% url "orders:checkout_payment" %}">
+                                        <a href="#">
                                             <div class="number">3</div>
                                             <div class="info">
                                                 <div class="title">Payment</div>
-                                                <div class="desc">Aenean ut pretium ipsum. </div>
+                                                <div class="desc">Secure payment processing</div>
                                             </div>
                                         </a>
                                     </div>
@@ -56,11 +56,11 @@
                                 <!-- BEGIN col-3 -->
                                 <div class="col-md-3 col-sm-3">
                                     <div class="step">
-                                        <a href="{% url "orders:checkout_complete" %}">
+                                        <a href="#">
                                             <div class="number">4</div>
                                             <div class="info">
-                                                <div class="title">Complete Payment</div>
-                                                <div class="desc">Curabitur interdum libero.</div>
+                                                <div class="title">Order Complete</div>
+                                                <div class="desc">Confirmation</div>
                                             </div>
                                         </a>
                                     </div>
@@ -72,64 +72,84 @@
                         <!-- END checkout-header -->
                         <!-- BEGIN checkout-body -->
                         <div class="checkout-body">
-							<h4 class="checkout-title">Choose a payment method</h4>
-                            <div class="form-group">
-                                <label class="col-md-4 control-label">Cardholder Name <span class="text-danger">*</span></label>
-                                <div class="col-md-4">
-                                    <input type="text" class="form-control required" name="cardholder" placeholder="" />
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="col-md-4 control-label">Card Number <span class="text-danger">*</span></label>
-                                <div class="col-md-4">
-                                    <input type="text" class="form-control required" name="cardnumber" placeholder="" />
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="col-sm-4 control-label">Payment Types <span class="text-danger">*</span></label>
-                                <div class="col-sm-8">
-                                    <ul class="list-inline payment-type">
-                                        <li class="active"><a href="#" data-click="set-payment" data-value="Paypal" data-toggle="tooltip" data-title="Paypal" data-placement="top" data-trigger="hover"><i class="fa fa-cc-paypal"></i></a></li>
-                                        <li><a href="#" data-click="set-payment" data-value="Visa" data-toggle="tooltip" data-title="Visa" data-placement="top" data-trigger="hover"><i class="fa fa-cc-visa"></i></a></li>
-                                        <li><a href="#" data-click="set-payment" data-value="Master Card" data-toggle="tooltip" data-title="Master Card" data-placement="top" data-trigger="hover"><i class="fa fa-cc-mastercard"></i></a></li>
-                                        <li><a href="#" data-click="set-payment" data-value="Credit Card" data-toggle="tooltip" data-title="Credit Card" data-placement="top" data-trigger="hover"><i class="fa fa-cc-discover"></i></a></li>
-                                    </ul>
-                                    <input type="hidden" name="payment_type" value="" data-id="payment-type" />
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="col-md-4 control-label">Expiration Date <span class="text-danger">*</span></label>
+                            <div class="row">
                                 <div class="col-md-8">
-                                    <div class="width-100">
-                                        <div class="row row-space-0">
-                                            <div class="col-xs-5">
-                                                <input type="text" name="mm" placeholder="MM" class="form-control required p-l-5 p-r-5 text-center" />
+                                    <h4 class="checkout-title">Review Your Order</h4>
+                                    
+                                    <div class="alert alert-info">
+                                        <i class="fa fa-info-circle"></i> Click "Continue to Payment" to proceed to our secure payment page.
+                                    </div>
+                                    
+                                    <div class="panel panel-default">
+                                        <div class="panel-heading">
+                                            <h4 class="panel-title">Cart Items ({{ cart.items.count }})</h4>
+                                        </div>
+                                        <div class="panel-body">
+                                            {% for item in cart.items.all %}
+                                            <div class="row m-b-15{% if not forloop.last %} p-b-15" style="border-bottom: 1px solid #eee;"{% else %}"{% endif %}>
+                                                <div class="col-xs-8">
+                                                    <strong>{{ item.product.name }}</strong><br>
+                                                    <small class="text-muted">Quantity: {{ item.quantity }} × ${{ item.product.price }}</small>
+                                                </div>
+                                                <div class="col-xs-4 text-right">
+                                                    <strong>${{ item.subtotal }}</strong>
+                                                </div>
                                             </div>
-                                            <div class="col-xs-2 text-center">
-                                                <div class="text-muted p-t-5 m-t-2">/</div>
-                                            </div>
-                                            <div class="col-xs-5">
-                                                <input type="text" name="yy" placeholder="YY" class="form-control required p-l-5 p-r-5 text-center" />
-                                            </div>
+                                            {% endfor %}
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="col-md-4 control-label">CSC <span class="text-danger">*</span></label>
-                                <div class="col-md-8">
-                                    <div class="width-100 pull-left m-r-10">
-                                        <input type="text" name="number" placeholder="" class="form-control required p-l-5 p-r-5 text-center" />
+                                
+                                <div class="col-md-4">
+                                    <h4 class="checkout-title">Order Summary</h4>
+                                    <div class="panel panel-default">
+                                        <div class="panel-body">
+                                            <div class="row m-b-10">
+                                                <div class="col-xs-6"><strong>Subtotal:</strong></div>
+                                                <div class="col-xs-6 text-right">${{ subtotal }}</div>
+                                            </div>
+                                            <div class="row m-b-10">
+                                                <div class="col-xs-6"><strong>Shipping:</strong></div>
+                                                <div class="col-xs-6 text-right">${{ shipping_cost }}</div>
+                                            </div>
+                                            <div class="row m-b-10">
+                                                <div class="col-xs-6"><strong>Tax:</strong></div>
+                                                <div class="col-xs-6 text-right">${{ tax }}</div>
+                                            </div>
+                                            <hr>
+                                            <div class="row">
+                                                <div class="col-xs-6"><h4><strong>Total:</strong></h4></div>
+                                                <div class="col-xs-6 text-right"><h4 class="text-primary"><strong>${{ total }}</strong></h4></div>
+                                            </div>
+                                            
+                                            <hr>
+                                            <h5 class="m-t-15 m-b-10"><strong>Shipping To:</strong></h5>
+                                            <p class="m-b-0">
+                                                {{ checkout_data.full_name }}<br>
+                                                {{ checkout_data.address }}<br>
+                                                {{ checkout_data.city }}, {{ checkout_data.state }} {{ checkout_data.postal_code }}<br>
+                                                {{ checkout_data.country }}
+                                            </p>
+                                            
+                                            <hr>
+                                            <div class="text-center">
+                                                <i class="fa fa-lock fa-2x text-success"></i>
+                                                <p class="text-muted m-t-10"><small>Secure payment with Stripe</small></p>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <a href="#" class="text-muted f-s-12 pull-left m-t-5 p-t-2"><i class="fa fa-question-circle"></i> What's this?</a>
                                 </div>
                             </div>
                         </div>
                         <!-- END checkout-body -->
                         <!-- BEGIN checkout-footer -->
                         <div class="checkout-footer">
-                            <a href="checkout_info.html" class="btn btn-white btn-lg pull-left">Back</a>
-                            <button type="submit" class="btn btn-inverse btn-lg p-l-30 p-r-30 m-l-10">Proceed</button>
+                            <a href="{% url 'orders:checkout_info' %}" class="btn btn-white btn-lg pull-left">
+                                <i class="fa fa-arrow-left"></i> Back to Shipping
+                            </a>
+                            <button type="submit" id="submit-payment" class="btn btn-inverse btn-lg p-l-30 p-r-30 m-l-10">
+                                <i class="fa fa-credit-card"></i> Continue to Payment
+                            </button>
                         </div>
                         <!-- END checkout-footer -->
                     </form>
@@ -255,4 +275,21 @@
             <!-- END container -->
         </div>
         <!-- END #policy -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form[name="form_payment"]');
+    const submitButton = document.getElementById('submit-payment');
+    
+    if (form && submitButton) {
+        form.addEventListener('submit', function(e) {
+            console.log('Form is being submitted...');
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Redirecting to payment...';
+        });
+    }
+});
+</script>
 {% endblock %}

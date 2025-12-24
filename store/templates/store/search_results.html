@@ -1,0 +1,133 @@
+{% extends "index.html" %}
+{% load static %}
+{% block title %}Search Results{% if query %} for "{{ query }}"{% endif %} - MyShop E-commerce{% endblock %}
+{% block content %}
+<!-- BEGIN #page-container -->
+<div id="page-container" class="page-without-sidebar">
+  <!-- BEGIN #page-header -->
+  <div
+    id="page-header"
+    class="section-container page-header-container bg-black"
+  >
+    <!-- BEGIN page-header-cover -->
+    <div class="page-header-cover">
+      <img src="{% static 'assets/img/product-cover.jpg' %}" alt="" />
+    </div>
+    <!-- END page-header-cover -->
+    <!-- BEGIN container -->
+    <div class="container">
+      <h1 class="page-header">Search Results{% if query %} for "<b>{{ query }}</b>"{% endif %}</h1>
+    </div>
+    <!-- END container -->
+  </div>
+  <!-- END #page-header -->
+
+  <!-- BEGIN search-results -->
+  <div id="search-results" class="section-container bg-silver">
+    <!-- BEGIN container -->
+    <div class="container">
+      <!-- BEGIN search-container -->
+      <div class="search-container">
+        <!-- BEGIN search-content -->
+        <div class="search-content">
+          <!-- BEGIN search-toolbar -->
+          <div class="search-toolbar">
+            <!-- BEGIN row -->
+            <div class="row">
+              <!-- BEGIN col-12 -->
+              <div class="col-md-12">
+                <h4>We found {{ page_obj.paginator.count }} Item{% if page_obj.paginator.count != 1 %}s{% endif %}{% if query %} for "{{ query }}"{% endif %}</h4>
+              </div>
+              <!-- END col-12 -->
+            </div>
+            <!-- END row -->
+          </div>
+          <!-- END search-toolbar -->
+          <!-- BEGIN search-item-container -->
+          <div class="search-item-container">
+            {% if page_obj %}
+            <!-- BEGIN item-row -->
+            <div class="item-row">
+              {% for product in page_obj %}
+              <!-- BEGIN item -->
+              <div class="item item-thumbnail">
+                <a href="{% url 'store:product_detail' product.slug %}" class="item-image">
+                  {% if product.images.exists %}
+                    <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" />
+                  {% else %}
+                    <img src="{% static 'assets/img/product-placeholder.png' %}" alt="{{ product.name }}" />
+                  {% endif %}
+                  {% if product.discount > 0 %}
+                    <div class="discount">{{ product.discount }}% OFF</div>
+                  {% endif %}
+                </a>
+                <div class="item-info">
+                  <h4 class="item-title">
+                    <a href="{% url 'store:product_detail' product.slug %}">{{ product.name }}</a>
+                  </h4>
+                  <p class="item-desc">{{ product.description|truncatewords:10 }}</p>
+                  {% if product.discount > 0 %}
+                    <div class="item-price">${{ product.discounted_price }}</div>
+                    <div class="item-discount-price">${{ product.price }}</div>
+                  {% else %}
+                    <div class="item-price">${{ product.price }}</div>
+                  {% endif %}
+                </div>
+              </div>
+              <!-- END item -->
+              {% if forloop.counter|divisibleby:3 and not forloop.last %}
+            </div>
+            <!-- END item-row -->
+            <!-- BEGIN item-row -->
+            <div class="item-row">
+              {% endif %}
+              {% endfor %}
+            </div>
+            <!-- END item-row -->
+            {% else %}
+            <div class="text-center p-t-50 p-b-50">
+              <h3>No products found{% if query %} for "{{ query }}"{% endif %}</h3>
+              <p class="m-t-20">Try different keywords or browse our <a href="{% url 'store:index' %}">all products</a>.</p>
+            </div>
+            {% endif %}
+          </div>
+          <!-- END search-item-container -->
+          
+          <!-- BEGIN pagination -->
+          {% if page_obj.has_other_pages %}
+          <div class="text-center">
+            <ul class="pagination m-t-0">
+              {% if page_obj.has_previous %}
+              <li><a href="?q={{ query }}&page={{ page_obj.previous_page_number }}">Previous</a></li>
+              {% else %}
+              <li class="disabled"><a href="javascript:;">Previous</a></li>
+              {% endif %}
+              
+              {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <li class="active"><a href="javascript:;">{{ num }}</a></li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li><a href="?q={{ query }}&page={{ num }}">{{ num }}</a></li>
+                {% endif %}
+              {% endfor %}
+              
+              {% if page_obj.has_next %}
+              <li><a href="?q={{ query }}&page={{ page_obj.next_page_number }}">Next</a></li>
+              {% else %}
+              <li class="disabled"><a href="javascript:;">Next</a></li>
+              {% endif %}
+            </ul>
+          </div>
+          {% endif %}
+          <!-- END pagination -->
+        </div>
+        <!-- END search-content -->
+      </div>
+      <!-- END search-container -->
+    </div>
+    <!-- END container -->
+  </div>
+  <!-- END search-results -->
+</div>
+<!-- END #page-container -->
+{% endblock %}
