@@ -9,8 +9,6 @@ class Category(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, unique=True)
     slug = models.SlugField(max_length=255, unique=True, blank=True)
-    description = models.TextField(blank=True)
-    image = models.ImageField(upload_to='categories/', blank=True, null=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -39,7 +37,6 @@ class SubCategory(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='subcategories')
     name = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True, blank=True)
-    description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -72,18 +69,15 @@ class Product(models.Model):
     subcategory = models.ForeignKey(SubCategory, on_delete=models.SET_NULL, related_name='products', 
                                     blank=True, null=True)
     brand = models.CharField(max_length=100, blank=True, help_text='Product brand/manufacturer')
-    description = models.TextField()
+    description = models.ForeignKey('ProductDescription', on_delete=models.SET_NULL, related_name='+',
+                                    blank=True, null=True)
     specifications = models.TextField(blank=True, help_text='Product specifications (bullet points)')
     price = models.DecimalField(max_digits=10, decimal_places=2)
     compare_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True,
                                        help_text='Original price for showing discounts')
     stock = models.IntegerField(default=0)
-    availability_status = models.CharField(max_length=50, default='In Stock', 
-                                          help_text='Stock availability status')
-    image = models.ForeignKey('ProductImage', on_delete=models.SET_NULL, related_name='+',
-                              blank=True, null=True, help_text='Main product image')
-    warranty = models.CharField(max_length=255, blank=True, 
-                               help_text='Warranty information (e.g., 1 Year Local Manufacturer Warranty)')
+    availability_status = models.CharField(max_length=50, default='In Stock', help_text='Stock availability status')
+    warranty = models.CharField(max_length=255, blank=True, help_text='Warranty information (e.g., 1 Year Local Manufacturer Warranty)')
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -129,6 +123,24 @@ class Product(models.Model):
     def review_count(self):
         """Get total count of approved reviews"""
         return self.reviews.filter(is_approved=True).count()
+    
+class ProductDescription(models.Model):
+    """Detailed product description"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='descriptions')
+    image = models.ImageField(upload_to='products/descriptions/', blank=True, null=True)
+    title = models.CharField(max_length=255, blank=True)
+    content = models.TextField(help_text='Detailed HTML description of the product')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'product_descriptions'
+        verbose_name = 'Product Description'
+        verbose_name_plural = 'Product Descriptions'
+    
+    def __str__(self):
+        return f"Product Description {self.id}"
 
 
 class ProductImage(models.Model):
@@ -174,3 +186,42 @@ class Review(models.Model):
     
     def __str__(self):
         return f"{self.product.name} - {self.user.username} - {self.rating} stars"
+
+
+class ProductVariants(models.Model):
+    """Product variants like size, color"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
+    variant_type = models.CharField(max_length=100, help_text='Type of variant (e.g., Size, Color)')
+    variant_value = models.CharField(max_length=100, help_text='Value of the variant (e.g., Red, Large)')
+    additional_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00,
+                                           help_text='Additional price for this variant')
+    stock = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'product_variants'
+        verbose_name = 'Product Variant'
+        verbose_name_plural = 'Product Variants'
+        unique_together = ('product', 'variant_type', 'variant_value')
+    
+    def __str__(self):
+        return f"{self.product.name} - {self.variant_type}: {self.variant_value}"
+    
+class ProductAdditionalInfo(models.Model):
+    """Additional information about the product"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='additional_info')
+    key = models.CharField(max_length=255, help_text='Information key (e.g., Material, Dimensions)')
+    value = models.CharField(max_length=255, help_text='Information value (e.g., Cotton, 10x5x2 inches)')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'product_additional_info'
+        verbose_name = 'Product Additional Info'
+        verbose_name_plural = 'Product Additional Info'
+    
+    def __str__(self):
+        return f"{self.product.name} - {self.key}"

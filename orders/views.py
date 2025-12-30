@@ -482,6 +482,7 @@ def stripe_webhook(request):
     """Handle Stripe webhooks"""
     payload = request.body
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+    event = None
     
     try:
         event = stripe.Webhook.construct_event(

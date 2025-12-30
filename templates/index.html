@@ -299,7 +299,7 @@
             <div class="container">
                 <!-- BEGIN section-title -->
                 <h4 class="section-title clearfix">
-                    <a href="#" class="pull-right">SHOW ALL</a>
+                    <a href="{% url 'store:store' %}" class="pull-right">SHOW ALL</a>
                     Exclusive promotions
                     <small>from 25 September 2016 - 1 January 2017</small>
                 </h4>
@@ -446,7 +446,7 @@
             <div class="container">
                 <!-- BEGIN section-title -->
                 <h4 class="section-title clearfix">
-                    <a href="#" class="pull-right">SHOW ALL</a>
+                    <a href="{% url "store:store" %}" class="pull-right">SHOW ALL</a>
                     Featured Products
                     <small>Shop and get your favourite featured items at amazing prices!</small>
                 </h4>
@@ -534,7 +534,7 @@
             <div class="container">
                 <!-- BEGIN section-title -->
                 <h4 class="section-title clearfix">
-                    <a href="#" class="pull-right">SHOW ALL</a>
+                    <a href="{% url "store:store" %}" class="pull-right">SHOW ALL</a>
                     New Products
                     <small>Shop and get the latest new products at amazing prices!</small>
                 </h4>
@@ -545,11 +545,11 @@
                     <div class="category-sidebar">
                         <ul class="category-list">
                             <li class="list-header">Top Categories</li>
-                            {% for category in categories|slice:":5" %}
-                                <li><a href="{% url 'store:category' category.slug %}">{{ category.name }}</a></li>
+                            {% for category in sub_categories.Mobile %}
+                                <li><a href="{% url 'store:category' category.slug %}">{{ category.name }} <i class="fa fa-angle-right pull-right"></i></a></li>
                             {% endfor %}
                         </ul>
-                    </div>
+                    </div> 
                     <!-- END category-sidebar -->
                     <!-- BEGIN category-detail -->
                     <div class="category-detail">
