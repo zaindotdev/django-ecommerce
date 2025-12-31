@@ -214,8 +214,10 @@ class ProductAdditionalInfo(models.Model):
     """Additional information about the product"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='additional_info')
+    variant = models.ForeignKey(ProductVariants, on_delete=models.CASCADE, related_name='additional_info',
+                                blank=True, null=True)
     key = models.CharField(max_length=255, help_text='Information key (e.g., Material, Dimensions)')
-    value = models.CharField(max_length=255, help_text='Information value (e.g., Cotton, 10x5x2 inches)')
+    value = models.TextField(max_length=2200, help_text='Information value (e.g., Cotton, 10x5x2 inches)')
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:

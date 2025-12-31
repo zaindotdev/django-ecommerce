@@ -60,59 +60,29 @@ def product_list_view(request):
 def product_detail_view(request, slug):
     """Product detail view"""
     product = get_object_or_404(Product, slug=slug, is_active=True)
-    related_products = Product.objects.filter(
-        category=product.category,
-        is_active=True
-    ).exclude(id=product.id)[:4]
-    
-    reviews = product.reviews.filter(is_approved=True)
-    avg_rating = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
-    
-    # Get product images
+    reviews = Review.objects.filter(product=product).order_by('-created_at')
+    average_rating = reviews.aggregate(Avg('rating'))['rating__avg']
     product_images = product.images.all()
-    
-    # Get main product image URL
-    main_image_url = product.image.image.url if product.image else (product_images.first().image.url if product_images.exists() else None)
-    
-    # Parse product description into sections
+    main_image_url = product_images[0].image.url if product_images else None
+
+    # Prepare description_sections for the tab content
+    descriptions = product.descriptions.all()
     description_sections = []
-    if product.description:
-        # Normalize line endings (handle \r\n, \r, and \n)
-        description = product.description.replace('\r\n', '\n').replace('\r', '\n')
-        
-        # Split by double newlines to get sections
-        sections = description.strip().split('\n\n')
-        images_list = list(product_images)
-        
-        for i, section in enumerate(sections):
-            if section.strip():
-                lines = section.strip().split('\n', 1)
-                title = lines[0].strip()
-                content = lines[1].strip() if len(lines) > 1 else ''
-                
-                # Get corresponding image or use main product image
-                if i < len(images_list):
-                    image_url = images_list[i].image.url
-                elif main_image_url:
-                    image_url = main_image_url
-                else:
-                    image_url = None
-                
-                description_sections.append({
-                    'title': title,
-                    'content': content,
-                    'image': image_url,
-                    'is_right': i % 2 == 1  # Alternate between left and right
-                })
-    
+    for idx, desc in enumerate(descriptions):
+        description_sections.append({
+            'image': desc.image.url if desc.image else '',
+            'title': desc.title,
+            'content': desc.content,
+            'is_right': idx % 2 == 1,  # alternate left/right
+        })
+
     context = {
         'product': product,
-        'related_products': related_products,
         'reviews': reviews,
-        'avg_rating': avg_rating,
-        'description_sections': description_sections,
+        'average_rating': average_rating,
         'product_images': product_images,
         'main_image_url': main_image_url,
+        'description_sections': description_sections,
     }
     return render(request, 'store/product_detail.html', context)
 

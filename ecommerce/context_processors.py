@@ -1,5 +1,8 @@
+import logging
 from orders.models import Cart
 from store.models import Product, Category, SubCategory
+
+logger = logging.getLogger(__name__)
 
 
 def cart_context(request):
@@ -16,8 +19,8 @@ def cart_context(request):
 
         if cart:
             cart_items_count = cart.total_items
-    except:
-        pass
+    except Exception as e:
+        logger.exception("Error building cart context")
 
     return {
         'cart': cart,
@@ -28,16 +31,16 @@ def cart_context(request):
 def product_context(request):
     """Add product-related context variables"""
     trending_products = Product.objects.filter(
-        is_active=True).order_by('-created_at')[:5]
+        is_active=True).select_related('category').order_by('-created_at')[:5]
     featured_products = Product.objects.filter(
-        is_active=True, is_featured=True).order_by('-created_at')[:5]
+        is_active=True, is_featured=True).select_related('category').order_by('-created_at')[:5]
     new_products = Product.objects.filter(
-        is_active=True).order_by('-created_at')[:5]
-    
-    print("Context Processor Loaded: product_context", new_products)
+        is_active=True).select_related('category').order_by('-created_at')[:5]
 
-    def calculate_discount(p): return ((p.compare_price - p.price) / p.compare_price *
-                                       100) if p.compare_price and p.compare_price > p.price else 0
+    logger.debug("Context Processor Loaded: product_context count=%d", len(new_products))
+
+    def calculate_discount(p):
+        return ((p.compare_price - p.price) / p.compare_price * 100) if p.compare_price and p.compare_price > p.price else 0
     for product in trending_products:
         product._discount_percent = calculate_discount(product)
     for product in featured_products:
@@ -56,13 +59,16 @@ def get_categories(request):
     """Add product categories to context"""
     categories = Category.objects.filter(is_active=True).order_by('name')
     mobile_sub_categories = SubCategory.objects.filter(
-        is_active=True, category__name='Mobile Phone').order_by('name')[:4]
+        is_active=True, category__name='Mobile Phone').select_related('category').order_by('name')[:4]
     mobile_sub_categories_all = SubCategory.objects.filter(
-        is_active=True, category__name='Mobile Phone').order_by('name')
+        is_active=True, category__name='Mobile Phone').select_related('category').order_by('name')
     tablets_sub_categories = SubCategory.objects.filter(
-        is_active=True, category__name='Tablet').order_by('name')
+        is_active=True, category__name='Tablet').select_related('category').order_by('name')
     mobile_sub_categories_products = Product.objects.filter(
-        is_active=True, subcategory__in=mobile_sub_categories).order_by('-created_at')[:5]
+        is_active=True, category__name='Mobile Phone').select_related('category').order_by('-created_at')[:5]
+
+    print("Context Processor Loaded, mobile_sub_categories_products", len(mobile_sub_categories_products))
+
     return {
         'categories': categories,
         "sub_categories": {
@@ -70,5 +76,5 @@ def get_categories(request):
             "Mobile": mobile_sub_categories_all,
             "Tablets": tablets_sub_categories,
         },
-        "Products": mobile_sub_categories_products,
+        'products': mobile_sub_categories_products,
     }
