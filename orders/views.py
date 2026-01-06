@@ -7,6 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import send_mail
 from decimal import Decimal
 import stripe
+import json
 
 from .models import Cart, CartItem, Order, OrderItem
 from store.models import Product
@@ -484,27 +485,54 @@ def stripe_webhook(request):
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
     event = None
     
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
-        )
-    except ValueError:
-        return HttpResponse(status=400)
-    except stripe.error.SignatureVerificationError:
-        return HttpResponse(status=400)
+    # Get webhook secret from settings
+    webhook_secret = settings.STRIPE_WEBHOOK_SECRET
+    
+    # If no webhook secret is configured, skip verification (development only)
+    if not webhook_secret:
+        try:
+            event = stripe.Event.construct_from(
+                json.loads(payload), stripe.api_key
+            )
+        except Exception as e:
+            print(f"Webhook error: {str(e)}")
+            return HttpResponse(status=400)
+    else:
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, webhook_secret
+            )
+        except ValueError as e:
+            print(f"Invalid payload: {str(e)}")
+            return HttpResponse(status=400)
+        except stripe.error.SignatureVerificationError as e:
+            print(f"Invalid signature: {str(e)}")
+            return HttpResponse(status=400)
     
     # Handle the event
-    if event['type'] == 'payment_intent.succeeded':
+    event_type = event.get('type')
+    
+    if event_type == 'payment_intent.succeeded':
         payment_intent = event['data']['object']
         # Update order status if needed
         Order.objects.filter(stripe_payment_intent=payment_intent['id']).update(
             payment_status='completed'
         )
-    elif event['type'] == 'payment_intent.payment_failed':
+        print(f"Payment succeeded for: {payment_intent['id']}")
+        
+    elif event_type == 'payment_intent.payment_failed':
         payment_intent = event['data']['object']
         Order.objects.filter(stripe_payment_intent=payment_intent['id']).update(
             payment_status='failed'
         )
+        print(f"Payment failed for: {payment_intent['id']}")
+        
+    elif event_type == 'checkout.session.completed':
+        session = event['data']['object']
+        print(f"Checkout session completed: {session['id']}")
+        
+    else:
+        print(f"Unhandled event type: {event_type}")
     
     return HttpResponse(status=200)
 

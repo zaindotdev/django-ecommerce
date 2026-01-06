@@ -80,6 +80,8 @@ class Product(models.Model):
     warranty = models.CharField(max_length=255, blank=True, help_text='Warranty information (e.g., 1 Year Local Manufacturer Warranty)')
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
+    is_promoted = models.BooleanField(default=False)
+    is_slider = models.BooleanField(default=False, help_text='Display in homepage slider')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -168,7 +170,7 @@ class Review(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
     user = models.ForeignKey('accounts.Account', on_delete=models.CASCADE)
-    rating = models.IntegerField(choices=[(i, i) for i in range(1, 6)])
+    rating = models.FloatField(choices=[(i, i) for i in range(1, 6)])
     title = models.CharField(max_length=255)
     comment = models.TextField()
     is_approved = models.BooleanField(default=False)
@@ -214,16 +216,20 @@ class ProductAdditionalInfo(models.Model):
     """Additional information about the product"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='additional_info')
-    variant = models.ForeignKey(ProductVariants, on_delete=models.CASCADE, related_name='additional_info',
-                                blank=True, null=True)
-    key = models.CharField(max_length=255, help_text='Information key (e.g., Material, Dimensions)')
-    value = models.TextField(max_length=2200, help_text='Information value (e.g., Cotton, 10x5x2 inches)')
+    variant_name = models.CharField(max_length=100, blank=True, null=True, 
+                                   help_text='Variant/Model name (e.g., iPhone 6s, iPhone 6s Plus)')
+    key = models.CharField(max_length=255, help_text='Information key (e.g., Capacity, Display, Chip)')
+    value = models.TextField(max_length=2200, help_text='Information value (e.g., 16GB/64GB/128GB, Retina Display)')
+    order = models.IntegerField(default=0, help_text='Display order of the specification row')
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         db_table = 'product_additional_info'
         verbose_name = 'Product Additional Info'
         verbose_name_plural = 'Product Additional Info'
+        ordering = ['order', 'key', 'variant_name']
     
     def __str__(self):
+        if self.variant_name:
+            return f"{self.product.name} - {self.key} ({self.variant_name})"
         return f"{self.product.name} - {self.key}"

@@ -1,4 +1,4 @@
-{% extends "index.html" %} {% load static %} {% block title %} Product Details -
+{% extends "index.html" %} {% load static product_filters %} {% block title %} Product Details -
 Color Admin | e-commerce frontend theme {% endblock %} {% block content %}
 <!-- BEGIN #product -->
 <div id="product" class="section-container p-t-20">
@@ -42,10 +42,7 @@ Color Admin | e-commerce frontend theme {% endblock %} {% block content %}
           <!-- BEGIN product-main-image -->
           <div class="product-main-image" data-id="main-image">
             {% if main_image_url %}
-            <img
-              src="{{ main_image_url }}"
-              alt="{{ product.name }}"
-            />
+            <img src="{{ main_image_url }}" alt="{{ product.name }}" />
             {% endif %}
           </div>
           <!-- END product-main-image -->
@@ -60,7 +57,9 @@ Color Admin | e-commerce frontend theme {% endblock %} {% block content %}
               <span class="label label-success">SALE</span>
               {% endif %}
               {{ product.name }}
+              <span> #{{product.sku}} </span>
             </h1>
+
             <ul class="product-category">
               {% if product.subcategory %}
               <li>
@@ -81,19 +80,18 @@ Color Admin | e-commerce frontend theme {% endblock %} {% block content %}
           <!-- BEGIN product-warranty -->
           <div class="product-warranty">
             <div class="pull-right">
-              Availability: {% if product.stock > 0 %}In stock ({{ product.stock}}){% else %}Out of stock{% endif %}
+              Availability: {% if product.stock > 0 %}In stock ({{product.stock}}){% else %}Out of stock{% endif %}
             </div>
             <div>
-              {% if product.warranty %}<b>{{ product.warranty }}</b>{% else %}<b
-                >1 Year</b
-              >
+              {% if product.warranty %}<b>{{ product.warranty }}</b>{% else %}<b>1 Year</b>
               Manufacturer Warranty{% endif %}
             </div>
           </div>
           <!-- END product-warranty -->
           <!-- BEGIN product-info-list -->
           <ul class="product-info-list">
-            {% if product.specifications %} {{ product.specifications|linebreaks}} {% endif %}
+            {% if product.specifications %} {{
+            product.specifications|linebreaks}} {% endif %}
           </ul>
           <!-- END product-info-list -->
           <!-- BEGIN product-social -->
@@ -167,30 +165,59 @@ Color Admin | e-commerce frontend theme {% endblock %} {% block content %}
             <div class="product-price">
               <div class="price">${{ product.price }}</div>
             </div>
-            <form method="POST" action="{% url 'orders:add_to_cart' product.id %}">
+            <form
+              method="POST"
+              action="{% url 'orders:add_to_cart' product.id %}"
+            >
               {% csrf_token %}
               <div class="product-quantity">
                 <label class="control-label m-r-10">Quantity:</label>
-                <div class="input-group" style="max-width: 150px; display: inline-flex;">
+                <div
+                  class="input-group"
+                  style="max-width: 150px; display: inline-flex"
+                >
                   <span class="input-group-btn">
-                    <button type="button" class="btn btn-default btn-quantity" data-type="minus">
+                    <button
+                      type="button"
+                      class="btn btn-default btn-quantity"
+                      data-type="minus"
+                    >
                       <i class="fa fa-minus"></i>
                     </button>
                   </span>
-                  <input type="number" name="quantity" class="form-control text-center" value="1" min="1" max="{{ product.stock }}" />
+                  <input
+                    type="number"
+                    name="quantity"
+                    class="form-control text-center"
+                    value="1"
+                    min="1"
+                    max="{{ product.stock }}"
+                  />
                   <span class="input-group-btn">
-                    <button type="button" class="btn btn-default btn-quantity" data-type="plus">
+                    <button
+                      type="button"
+                      class="btn btn-default btn-quantity"
+                      data-type="plus"
+                    >
                       <i class="fa fa-plus"></i>
                     </button>
                   </span>
                 </div>
               </div>
-              <button class="btn btn-inverse btn-lg m-t-10" type="submit" {% if product.stock <= 0 %}disabled{% endif %}>
+              <button
+                class="btn btn-inverse btn-lg m-t-10"
+                type="submit"
+                {%
+                if
+                product.stock
+                <="0"
+                %}disabled{%
+                endif
+                %}
+              >
                 {% if product.stock > 0 %}
-                  <i class="fa fa-shopping-cart"></i> ADD TO CART
-                {% else %}
-                  OUT OF STOCK
-                {% endif %}
+                <i class="fa fa-shopping-cart"></i> ADD TO CART {% else %} OUT
+                OF STOCK {% endif %}
               </button>
             </form>
           </div>
@@ -205,6 +232,9 @@ Color Admin | e-commerce frontend theme {% endblock %} {% block content %}
         <ul id="product-tab" class="nav nav-tabs">
           <li class="active">
             <a href="#product-desc" data-toggle="tab">Product Description</a>
+          </li>
+          <li class="">
+            <a href="#product-info" data-toggle="tab">Additional Information</a>
           </li>
           <li class="">
             <a href="#product-reviews" data-toggle="tab"
@@ -231,6 +261,48 @@ Color Admin | e-commerce frontend theme {% endblock %} {% block content %}
             <!-- END product-desc -->
             {% endfor %}
           </div>
+          <!-- END #product-desc -->
+          <!-- BEGIN #product-info -->
+          <div class="tab-pane fade" id="product-info">
+            {% if additional_info %}
+            <!-- BEGIN table-responsive -->
+            <div class="table-responsive">
+              <!-- BEGIN table-product -->
+              <table class="table table-product table-striped">
+                {% if variant_names %}
+                <thead>
+                  <tr>
+                    <th></th>
+                    {% for variant_name in variant_names %}
+                    <th>{{ variant_name }}</th>
+                    {% endfor %}
+                  </tr>
+                </thead>
+                {% endif %}
+                <tbody>
+                  {% for key, variants in grouped_info.items %}
+                  <tr>
+                    <td class="field" style="font-weight: 600;">{{ key }}</td>
+                    {% if variant_names %}
+                      {% for variant_name in variant_names %}
+                      <td>{{ variants|default_if_none:''|get_item:variant_name|linebreaks }}</td>
+                      {% endfor %}
+                    {% else %}
+                      <td colspan="10">{{ variants.values.0|linebreaks }}</td>
+                    {% endif %}
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              <!-- END table-product -->
+            </div>
+            <!-- END table-responsive -->
+            {% else %}
+            <div class="p-20">
+              <p class="text-muted">No additional information available for this product.</p>
+            </div>
+            {% endif %}
+          </div>
           <!-- END #product-info -->
           <!-- BEGIN #product-reviews -->
           <div class="tab-pane fade" id="product-reviews">
@@ -238,40 +310,48 @@ Color Admin | e-commerce frontend theme {% endblock %} {% block content %}
             <div class="row row-space-30">
               <!-- BEGIN col-7 -->
               <div class="col-md-7">
-                {% if reviews %}
-                {% for review in reviews %}
+                {% if reviews %} {% for review in reviews %}
                 <!-- BEGIN review -->
                 <div class="review">
                   <div class="review-info">
                     <div class="review-icon">
                       {% if review.user.profile.avatar %}
-                      <img src="{{ review.user.profile.avatar.url }}" alt="{{ review.user.get_full_name }}" />
+                      <img
+                        src="{{ review.user.profile.avatar.url }}"
+                        alt="{{ review.user.get_full_name }}"
+                      />
                       {% else %}
-                      <img src="{% static 'assets/img/user-1.jpg' %}" alt="{{ review.user.get_full_name }}" />
+                      <img
+                        src="{% static 'assets/img/user-1.jpg' %}"
+                        alt="{{ review.user.get_full_name }}"
+                      />
                       {% endif %}
                     </div>
                     <div class="review-rate">
                       <ul class="review-star">
-                        {% for i in "12345" %}
-                          {% if forloop.counter <= review.rating %}
-                          <li class="active"><i class="fa fa-star"></i></li>
-                          {% else %}
-                          <li><i class="fa fa-star-o"></i></li>
-                          {% endif %}
-                        {% endfor %}
+                        {% for i in "12345" %} {% if forloop.counter <= review.rating %}
+                        <li class="active"><i class="fa fa-star"></i></li>
+                        {% else %}
+                        <li><i class="fa fa-star-o"></i></li>
+                        {% endif %} {% endfor %}
                       </ul>
                       ({{ review.rating }}/5)
                     </div>
-                    <div class="review-name">{{ review.user.get_full_name|default:review.user.username }}</div>
-                    <div class="review-date">{{ review.created_at|date:"d/m/Y g:ia" }}</div>
+                    <div class="review-name">
+                      {{ review.user.get_full_name|default:review.user.username}}
+                    </div>
+                    <div class="review-date">
+                      {{ review.created_at|date:"d/m/Y g:ia" }}
+                    </div>
                   </div>
                   <div class="review-title">{{ review.title }}</div>
                   <div class="review-message">{{ review.comment }}</div>
                 </div>
                 <!-- END review -->
-                {% endfor %}
-                {% else %}
-                <p class="text-muted">No reviews yet. Be the first to review this product!</p>
+                {% endfor %} {% else %}
+                <p class="text-muted">
+                  No reviews yet. Be the first to review this product!
+                </p>
                 {% endif %}
               </div>
               <!-- END col-7 -->
@@ -279,44 +359,106 @@ Color Admin | e-commerce frontend theme {% endblock %} {% block content %}
               <div class="col-md-5">
                 <!-- BEGIN review-form -->
                 <div class="review-form">
-                  <form action="product_detail.html" name="review_form" method="POST">
+                  {% if user.is_authenticated %} {% if user_has_reviewed %}
+                  <div class="alert alert-info">
+                    <i class="fa fa-check-circle"></i> You have already reviewed
+                    this product.
+                  </div>
+                  {% else %}
+                  <form
+                    action="{% url 'store:add_review' product.id %}"
+                    name="review_form"
+                    method="POST"
+                  >
+                    {% csrf_token %}
                     <h2>Write a review</h2>
                     <div class="form-group">
-                      <label for="name">Name <span class="text-danger">*</span></label>
-                      <input type="text" class="form-control" id="name" />
+                      <label for="title"
+                        >Title <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="title"
+                        name="title"
+                        required
+                      />
                     </div>
                     <div class="form-group">
-                      <label for="email">Title <span class="text-danger">*</span></label>
-                      <input type="text" class="form-control" id="email" />
+                      <label for="comment"
+                        >Review <span class="text-danger">*</span></label
+                      >
+                      <textarea
+                        class="form-control"
+                        rows="8"
+                        id="comment"
+                        name="comment"
+                        required
+                      ></textarea>
                     </div>
                     <div class="form-group">
-                      <label for="review">Review <span class="text-danger">*</span></label>
-                      <textarea class="form-control" rows="8" id="review"></textarea>
-                    </div>
-                    <div class="form-group">
-                      <label for="email">Rating  <span class="text-danger">*</span></label>
-                      <div class="rating rating-selection" data-rating="true" data-target="rating">
-                        <i class="fa fa-star-o" data-value="2"></i>
-                        <i class="fa fa-star-o" data-value="4"></i>
-                        <i class="fa fa-star-o" data-value="6"></i>
-                        <i class="fa fa-star-o" data-value="8"></i>
-                        <i class="fa fa-star-o" data-value="10"></i>
+                      <label for="rating"
+                        >Rating <span class="text-danger">*</span></label
+                      >
+                      <div
+                        class="rating rating-selection"
+                        data-rating="true"
+                        data-target="rating"
+                        id="review-rating"
+                      >
+                        <i
+                          class="fa fa-star-o"
+                          data-full="1"
+                          data-half="0.5"
+                        ></i>
+                        <i
+                          class="fa fa-star-o"
+                          data-full="2"
+                          data-half="1.5"
+                        ></i>
+                        <i
+                          class="fa fa-star-o"
+                          data-full="3"
+                          data-half="2.5"
+                        ></i>
+                        <i
+                          class="fa fa-star-o"
+                          data-full="4"
+                          data-half="3.5"
+                        ></i>
+                        <i
+                          class="fa fa-star-o"
+                          data-full="5"
+                          data-half="4.5"
+                        ></i>
                         <span class="rating-comment">
-                          <span class="rating-comment-tooltip">Click to rate</span>
+                          <span class="rating-comment-tooltip"
+                            >Click to rate</span
+                          >
                         </span>
                       </div>
-                      <select name="rating" class="hide">
-                        <option value="2">2</option>
-                        <option value="4">4</option>
-                        <option value="6">6</option>
-                        <option value="8">8</option>
-                        <option value="10">10</option>
-                      </select>
-                    </div>            
-                    <button type="submit" class="btn btn-inverse btn-lg">Submit Review</button>
+                      <input
+                        type="hidden"
+                        name="rating"
+                        id="rating-select"
+                        required
+                      />
+                    </div>
+                    <button type="submit" class="btn btn-inverse btn-lg">
+                      Submit Review
+                    </button>
                   </form>
+                  {% endif %} {% else %}
+                  <div class="alert alert-warning">
+                    <i class="fa fa-info-circle"></i> Please
+                    <a href="{% url 'accounts:login' %}?next={{ request.path }}"
+                      >login</a
+                    >
+                    to write a review.
+                  </div>
+                  {% endif %}
                 </div>
-                <!-- END review-form --> 
+                <!-- END review-form -->
               </div>
               <!-- END col-5 -->
             </div>
@@ -343,11 +485,13 @@ Color Admin | e-commerce frontend theme {% endblock %} {% block content %}
             class="item-image"
           >
             {% if related.image %}
-              <img src="{{ related.image.image.url }}" alt="{{ related.name }}" />
+            <img src="{{ related.image.image.url }}" alt="{{ related.name }}" />
             {% elif related.images.all.0 %}
-              <img src="{{ related.images.all.0.image.url }}" alt="{{ related.name }}" />
-            {% endif %}
-            {% if related.compare_price and related.compare_price > related.price %}
+            <img
+              src="{{ related.images.all.0.image.url }}"
+              alt="{{ related.name }}"
+            />
+            {% endif %} {% if related.compare_price and related.compare_price > related.price %}
             <div class="discount">OFF</div>
             {% endif %}
           </a>
@@ -379,33 +523,146 @@ Color Admin | e-commerce frontend theme {% endblock %} {% block content %}
 
 <script>
   // Quantity increment/decrement controls
-  $(document).ready(function() {
-    $('.btn-quantity').click(function() {
-      var $input = $(this).closest('.input-group').find('input[name="quantity"]');
-      var currentVal = parseInt($input.val()) || 1;
-      var maxVal = parseInt($input.attr('max')) || 999;
-      var minVal = parseInt($input.attr('min')) || 1;
-      
-      if ($(this).data('type') === 'plus') {
-        if (currentVal < maxVal) {
-          $input.val(currentVal + 1);
+  document.addEventListener("DOMContentLoaded", function () {
+    // Quantity buttons
+    var quantityButtons = document.querySelectorAll(".btn-quantity");
+    quantityButtons.forEach(function (button) {
+      button.addEventListener("click", function () {
+        var inputGroup = this.closest(".input-group");
+        var input = inputGroup.querySelector('input[name="quantity"]');
+        var currentVal = parseInt(input.value) || 1;
+        var maxVal = parseInt(input.getAttribute("max")) || 999;
+        var minVal = parseInt(input.getAttribute("min")) || 1;
+
+        if (this.getAttribute("data-type") === "plus") {
+          if (currentVal < maxVal) {
+            input.value = currentVal + 1;
+          }
+        } else if (this.getAttribute("data-type") === "minus") {
+          if (currentVal > minVal) {
+            input.value = currentVal - 1;
+          }
         }
-      } else if ($(this).data('type') === 'minus') {
-        if (currentVal > minVal) {
-          $input.val(currentVal - 1);
-        }
+      });
+    });
+
+    // Ensure quantity input stays within bounds
+    var quantityInput = document.querySelector('input[name="quantity"]');
+    if (quantityInput) {
+      quantityInput.addEventListener("change", function () {
+        var val = parseInt(this.value) || 1;
+        var max = parseInt(this.getAttribute("max")) || 999;
+        var min = parseInt(this.getAttribute("min")) || 1;
+
+        if (val > max) this.value = max;
+        if (val < min) this.value = min;
+      });
+    }
+
+    // Review rating star handler
+    var ratingContainer = document.getElementById("review-rating");
+    if (ratingContainer) {
+      var ratingInput = document.getElementById("rating-select");
+      var stars = ratingContainer.querySelectorAll("i.fa");
+      var tooltip = ratingContainer.querySelector(".rating-comment-tooltip");
+
+      function getRatingLabel(value) {
+        if (value <= 1) return "Poor";
+        if (value <= 2) return "Fair";
+        if (value <= 3) return "Good";
+        if (value <= 4) return "Very Good";
+        return "Excellent";
       }
-    });
-    
-    // Ensure input stays within bounds
-    $('input[name="quantity"]').on('change', function() {
-      var val = parseInt($(this).val()) || 1;
-      var max = parseInt($(this).attr('max')) || 999;
-      var min = parseInt($(this).attr('min')) || 1;
-      
-      if (val > max) $(this).val(max);
-      if (val < min) $(this).val(min);
-    });
+
+      function updateStars(rating) {
+        var fullStars = Math.floor(rating);
+        var hasHalfStar = rating % 1 !== 0;
+
+        stars.forEach(function (star, index) {
+          var starPosition = index + 1;
+
+          if (starPosition <= fullStars) {
+            star.classList.remove("fa-star-o", "fa-star-half-o");
+            star.classList.add("fa-star");
+          } else if (starPosition === fullStars + 1 && hasHalfStar) {
+            star.classList.remove("fa-star-o", "fa-star");
+            star.classList.add("fa-star-half-o");
+          } else {
+            star.classList.remove("fa-star", "fa-star-half-o");
+            star.classList.add("fa-star-o");
+          }
+        });
+      }
+
+      // Click handler for each star
+      stars.forEach(function (star, index) {
+        star.addEventListener("click", function (e) {
+          var rect = this.getBoundingClientRect();
+          var clickX = e.clientX - rect.left;
+          var isLeftHalf = clickX < rect.width / 2;
+
+          var rating;
+          if (isLeftHalf) {
+            rating = parseFloat(this.getAttribute("data-half"));
+          } else {
+            rating = parseFloat(this.getAttribute("data-full"));
+          }
+
+          // Update hidden input
+          ratingInput.value = rating;
+
+          // Update star visuals
+          updateStars(rating);
+
+          // Update tooltip text
+          if (tooltip) {
+            tooltip.textContent =
+              getRatingLabel(rating) + " (" + rating + "/5)";
+          }
+        });
+
+        // Hover effect
+        star.addEventListener("mousemove", function (e) {
+          var rect = this.getBoundingClientRect();
+          var hoverX = e.clientX - rect.left;
+          var isLeftHalf = hoverX < rect.width / 2;
+
+          var rating;
+          if (isLeftHalf) {
+            rating = parseFloat(this.getAttribute("data-half"));
+          } else {
+            rating = parseFloat(this.getAttribute("data-full"));
+          }
+
+          updateStars(rating);
+
+          if (tooltip) {
+            tooltip.textContent =
+              getRatingLabel(rating) + " (" + rating + "/5)";
+          }
+        });
+      });
+
+      // Mouse leave - restore selected rating
+      ratingContainer.addEventListener("mouseleave", function () {
+        var selectedValue = parseFloat(ratingInput.value);
+        if (selectedValue) {
+          updateStars(selectedValue);
+          if (tooltip) {
+            tooltip.textContent =
+              getRatingLabel(selectedValue) + " (" + selectedValue + "/5)";
+          }
+        } else {
+          stars.forEach(function (star) {
+            star.classList.remove("fa-star", "fa-star-half-o");
+            star.classList.add("fa-star-o");
+          });
+          if (tooltip) {
+            tooltip.textContent = "Click to rate";
+          }
+        }
+      });
+    }
   });
 </script>
 

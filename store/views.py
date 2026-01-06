@@ -60,7 +60,7 @@ def product_list_view(request):
 def product_detail_view(request, slug):
     """Product detail view"""
     product = get_object_or_404(Product, slug=slug, is_active=True)
-    reviews = Review.objects.filter(product=product).order_by('-created_at')
+    reviews = Review.objects.filter(product=product, is_approved=True).order_by('-created_at')
     average_rating = reviews.aggregate(Avg('rating'))['rating__avg']
     product_images = product.images.all()
     main_image_url = product_images[0].image.url if product_images else None
@@ -75,7 +75,38 @@ def product_detail_view(request, slug):
             'content': desc.content,
             'is_right': idx % 2 == 1,  # alternate left/right
         })
+    
+    # Get related products from the same category
+    related_products = Product.objects.filter(
+        category=product.category,
+        is_active=True
+    ).exclude(id=product.id)[:6]
+    
+    # Check if user has already reviewed this product
+    user_has_reviewed = False
+    if request.user.is_authenticated:
+        user_has_reviewed = Review.objects.filter(
+            product=product,
+            user=request.user
+        ).exists()
 
+    # Get additional product information
+    additional_info = product.additional_info.all()
+    
+    # Group additional info by key and variant for table display
+    grouped_info = {}
+    variant_names = []
+    
+    for info in additional_info:
+        if info.key not in grouped_info:
+            grouped_info[info.key] = {}
+        
+        variant_name = info.variant_name or 'Default'
+        grouped_info[info.key][variant_name] = info.value
+        
+        if variant_name not in variant_names and info.variant_name:
+            variant_names.append(variant_name)
+    
     context = {
         'product': product,
         'reviews': reviews,
@@ -83,6 +114,11 @@ def product_detail_view(request, slug):
         'product_images': product_images,
         'main_image_url': main_image_url,
         'description_sections': description_sections,
+        'related_products': related_products,
+        'user_has_reviewed': user_has_reviewed,
+        'additional_info': additional_info,
+        'grouped_info': grouped_info,
+        'variant_names': variant_names,
     }
     return render(request, 'store/product_detail.html', context)
 
@@ -146,22 +182,35 @@ def add_review(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     
     if request.method == 'POST':
-        rating = request.POST.get('rating')
+        rating_raw = request.POST.get('rating')
         title = request.POST.get('title')
         comment = request.POST.get('comment')
         
-        if rating and title and comment:
-            try:
-                Review.objects.create(
-                    product=product,
-                    user=request.user,
-                    rating=int(rating),
-                    title=title,
-                    comment=comment
-                )
-                messages.success(request, 'Thank you for your review! It will be published after approval.')
-            except:
+        if rating_raw and title and comment:
+            # Check if user has already reviewed this product
+            if Review.objects.filter(product=product, user=request.user).exists():
                 messages.error(request, 'You have already reviewed this product.')
+            else:
+                try:
+                    # Convert to float to support half-star ratings
+                    rating = float(rating_raw)
+                    
+                    # Validate rating is between 0.5 and 5
+                    if rating < 0.5 or rating > 5:
+                        messages.error(request, 'Invalid rating value.')
+                    else:
+                        Review.objects.create(
+                            product=product,
+                            user=request.user,
+                            rating=rating,
+                            title=title,
+                            comment=comment
+                        )
+                        messages.success(request, 'Thank you for your review! It will be published after approval.')
+                except ValueError:
+                    messages.error(request, 'Invalid rating value.')
+                except Exception as e:
+                    messages.error(request, f'An error occurred: {str(e)}')
         else:
             messages.error(request, 'Please fill in all fields.')
     

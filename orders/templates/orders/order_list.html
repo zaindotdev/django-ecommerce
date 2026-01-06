@@ -25,7 +25,7 @@
           <div class="item-price">Price: ${{ item.product_price }}</div>
         </div>
         {% empty %}
-        <p>No items found in this order.</p>
+        <p style="color: red;">No items found in this order.</p>
         {% endfor %}  
       </div>
       <h3 class="order-detail-subtitle">Shipping Address:</h3>
