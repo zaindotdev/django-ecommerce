@@ -224,19 +224,19 @@ def search_view(request):
     print(f"Search query: {query}")
     
     if query:
-        # Search in product name, description, and category
         products = Product.objects.filter(
             Q(name__icontains=query) |
-            Q(description__icontains=query) |
+            Q(description__content__icontains=query) |
+            Q(description__title__icontains=query) |
             Q(specifications__icontains=query) |
             Q(category__name__icontains=query) |
-            Q(subcategory__name__icontains=query),
+            Q(subcategory__name__icontains=query) |
+            Q(brand__icontains=query),
             is_active=True
         ).distinct()
         
         print(f"Found {products.count()} products matching the query.")
     
-    # Pagination
     paginator = Paginator(products, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)

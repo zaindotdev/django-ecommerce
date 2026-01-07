@@ -87,7 +87,7 @@
             {% else %}
             <div class="text-center p-t-50 p-b-50">
               <h3>No products found{% if query %} for "{{ query }}"{% endif %}</h3>
-              <p class="m-t-20">Try different keywords or browse our <a href="{% url 'store:index' %}">all products</a>.</p>
+              <p class="m-t-20">Try different keywords or browse our <a href="{% url 'store:home' %}">all products</a>.</p>
             </div>
             {% endif %}
           </div>

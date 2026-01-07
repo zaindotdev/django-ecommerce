@@ -229,19 +229,25 @@ Color Admin | e-commerce frontend theme {% endblock %} {% block content %}
       <!-- BEGIN product-tab -->
       <div class="product-tab">
         <!-- BEGIN #product-tab -->
+        {% if description_sections or additional_info or reviews %}
         <ul id="product-tab" class="nav nav-tabs">
+          {% if description_sections %}
           <li class="active">
             <a href="#product-desc" data-toggle="tab">Product Description</a>
           </li>
-          <li class="">
+          {% endif %}
+          {% if additional_info %}
+          <li {% if not description_sections %}class="active"{% endif %}>
             <a href="#product-info" data-toggle="tab">Additional Information</a>
           </li>
-          <li class="">
+          {% endif %}
+          <li {% if not description_sections and not additional_info %}class="active"{% endif %}>
             <a href="#product-reviews" data-toggle="tab"
               >Rating & Reviews ({{ reviews.count }})</a
             >
           </li>
         </ul>
+        {% endif %}
         <!-- END #product-tab -->
         <!-- BEGIN #product-tab-content -->
         <div id="product-tab-content" class="tab-content">
